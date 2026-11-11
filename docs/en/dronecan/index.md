@@ -378,6 +378,10 @@ Another tool then checks which files were already uploaded using a local databas
 A ground station can reach the DroneCAN bus through the flight controller's MAVLink link, without a separate CAN adapter.
 PX4 forwards CAN frames between one CAN bus and the requesting ground station using the MAVLink [MAV_CMD_CAN_FORWARD](https://mavlink.io/en/messages/common.html#MAV_CMD_CAN_FORWARD), [CAN_FRAME](https://mavlink.io/en/messages/common.html#CAN_FRAME) and [CAN_FILTER_MODIFY](https://mavlink.io/en/messages/common.html#CAN_FILTER_MODIFY) messages.
 
+Forwarding is disabled by default: set [UAVCAN_CAN_FWD](../advanced_config/parameter_reference.md#UAVCAN_CAN_FWD) to `1` and reboot to use it.
+The parameter applies to one boot only: it is reset to `0` at startup, so the next reboot returns to normal operation.
+While disabled, `MAV_CMD_CAN_FORWARD` is denied.
+
 The feature is part of the `uavcan` driver (`CONFIG_UAVCAN_CAN_FORWARD`) and is not included on boards with constrained flash.
 
 ## Troubleshooting

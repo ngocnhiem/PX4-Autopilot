@@ -447,8 +447,18 @@ UavcanNode::start(uavcan::NodeID node_id, uint32_t bitrate)
 
 #if defined(CONFIG_UAVCAN_CAN_FORWARD)
 
-	if (can_forward_driver == nullptr) {
-		can_forward_driver = new ForwardingCanDriver(can->driver);
+	const param_t can_fwd_handle = param_find("UAVCAN_CAN_FWD");
+	int32_t can_fwd = 0;
+	(void)param_get(can_fwd_handle, &can_fwd);
+
+	if (can_fwd == 1) {
+		// one boot only: the next reboot is back to normal operation
+		const int32_t off = 0;
+		(void)param_set(can_fwd_handle, &off);
+
+		if (can_forward_driver == nullptr) {
+			can_forward_driver = new ForwardingCanDriver(can->driver);
+		}
 	}
 
 	if (can_forward_driver != nullptr) {

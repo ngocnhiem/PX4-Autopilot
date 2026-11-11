@@ -124,6 +124,16 @@ parameters:
       type: boolean
       default: 0
       reboot_required: true
+    UAVCAN_CAN_FWD:
+      description:
+        short: CAN forwarding over MAVLink
+        long: |-
+          Allow a ground station to access the CAN bus over MAVLink (MAV_CMD_CAN_FORWARD),
+          e.g. to update DroneCAN node firmware. Applies to the next boot only:
+          it is reset to 0 at startup, so the following reboot returns to normal operation.
+      type: boolean
+      default: 0
+      reboot_required: true
     UAVCAN_PUB_RTCM:
       description:
         short: publish RTCM stream

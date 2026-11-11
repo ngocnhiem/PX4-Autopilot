@@ -176,7 +176,7 @@ void CanForwarder::handleCommand(const vehicle_command_s &cmd, hrt_abstime now)
 		_bus = -1;
 		ack.result = vehicle_command_ack_s::VEHICLE_CMD_RESULT_ACCEPTED;
 
-	} else if (bus > 0 && bus <= _driver->getNumIfaces() && _driver->getIface(bus - 1) != nullptr) {
+	} else if (_driver != nullptr && bus > 0 && bus <= _driver->getNumIfaces() && _driver->getIface(bus - 1) != nullptr) {
 		if (_bus != bus - 1) {
 			PX4_INFO("CAN forwarding on CAN%d to %" PRIu32 "/%u", bus, cmd.source_system, unsigned(cmd.source_component));
 			_bus = bus - 1;
@@ -193,6 +193,14 @@ void CanForwarder::handleCommand(const vehicle_command_s &cmd, hrt_abstime now)
 
 void CanForwarder::update(hrt_abstime now, uavcan::CanIOManager &canio)
 {
+	vehicle_command_s cmd;
+
+	while (_vcmd_sub.update(&cmd)) {
+		if (cmd.command == vehicle_command_s::VEHICLE_CMD_CAN_FORWARD) {
+			handleCommand(cmd, now);
+		}
+	}
+
 	if (_driver == nullptr) {
 		return;
 	}
@@ -201,14 +209,6 @@ void CanForwarder::update(hrt_abstime now, uavcan::CanIOManager &canio)
 
 	if (_armed_sub.update(&armed)) {
 		_armed = armed.armed || armed.prearmed;
-	}
-
-	vehicle_command_s cmd;
-
-	while (_vcmd_sub.update(&cmd)) {
-		if (cmd.command == vehicle_command_s::VEHICLE_CMD_CAN_FORWARD) {
-			handleCommand(cmd, now);
-		}
 	}
 
 	if (active() && now > _last_keepalive + KeepaliveTimeout) {
@@ -272,6 +272,11 @@ void CanForwarder::pushFramesToBus(hrt_abstime now, uavcan::CanIOManager &canio)
 
 void CanForwarder::printStatus() const
 {
+	if (_driver == nullptr) {
+		printf("CAN forwarding over MAVLink: disabled (UAVCAN_CAN_FWD)\n");
+		return;
+	}
+
 	if (active()) {
 		printf("CAN forwarding over MAVLink: CAN%d%s\n", _bus + 1, _armed ? " (armed, monitor only)" : "");
 
